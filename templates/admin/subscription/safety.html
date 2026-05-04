@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Safety Monitoring - Cinematch Admin{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .violation-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-left: 4px solid #e9ecef;
+    }
+    .violation-card.low {
+        border-left-color: #28a745;
+    }
+    .violation-card.medium {
+        border-left-color: #ffc107;
+    }
+    .violation-card.high {
+        border-left-color: #fd7e14;
+    }
+    .violation-card.critical {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffe6e6 100%);
+    }
+    .severity-badge {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    .admin-nav {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    .admin-nav .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .admin-nav .nav-link:hover {
+        background: #e9ecef;
+    }
+    .admin-nav .nav-link.active {
+        background: #667eea;
+        color: white;
+    }
+    .content-sample {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 5px;
+        padding: 0.75rem;
+        font-family: monospace;
+        font-size: 0.9rem;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">
+                    <i class="fas fa-shield-alt"></i>
+                    Safety Monitoring
+                </h2>
+                <p class="mb-0 opacity-75">Monitor content safety violations and user protection</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-light" onclick="exportViolations()">
+                    <i class="fas fa-download"></i> Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.dashboard') }}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_users') }}">
+                    <i class="fas fa-users"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_ai_models') }}">
+                    <i class="fas fa-robot"></i> AI Models
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.analytics') }}">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('admin_subscription.safety_monitoring') }}">
+                    <i class="fas fa-shield-alt"></i> Safety
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.system_settings') }}">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Safety Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-danger">{{ total_violations }}</h3>
+                    <p class="text-muted mb-0">Total Violations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ unresolved_count }}</h3>
+                    <p class="text-muted mb-0">Needs Review</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Severity Breakdown</h6>
+                    <div class="row">
+                        {% for severity_item in severity_breakdown %}
+                        <div class="col-3 text-center">
+                            <div class="severity-badge bg-{% if severity_item.severity == 'low' %}success{% elif severity_item.severity == 'medium' %}warning{% elif severity_item.severity == 'high' %}warning{% else %}danger{% endif %} text-white">
+                                {{ severity_item.count }}
+                            </div>
+                            <small class="d-block mt-1">{{ severity_item.severity.title() }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="severity" class="form-label">Severity Level</label>
+                    <select class="form-select" id="severity" name="severity">
+                        <option value="">All Severities</option>
+                        <option value="low" {% if severity_filter == 'low' %}selected{% endif %}>Low</option>
+                        <option value="medium" {% if severity_filter == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="high" {% if severity_filter == 'high' %}selected{% endif %}>High</option>
+                        <option value="critical" {% if severity_filter == 'critical' %}selected{% endif %}>Critical</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="resolved" class="form-label">Resolution Status</label>
+                    <select class="form-select" id="resolved" name="resolved">
+                        <option value="">All Violations</option>
+                        <option value="unresolved" {% if resolved_filter == 'unresolved' %}selected{% endif %}>Unresolved</option>
+                        <option value="resolved" {% if resolved_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <a href="{{ url_for('admin_subscription.safety_monitoring') }}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-times"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Violations List -->
+    {% if violations and violations.items %}
+        {% for violation in violations.items %}
+        <div class="violation-card {{ violation.severity }}">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-start mb-2">
+                        <div class="me-3">
+                            <span class="severity-badge bg-{% if violation.severity == 'low' %}success{% elif violation.severity == 'medium' %}warning{% elif violation.severity == 'high' %}warning{% else %}danger{% endif %} text-white">
+                                {{ violation.severity.upper() }}
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">{{ violation.violation_type|replace('_', ' ')|title }}</h6>
+                            <small class="text-muted">
+                                Category: {{ violation.category or 'Unknown' }} | 
+                                Detection: {{ violation.detection_method or 'Unknown' }}
+                                {% if violation.confidence_score %}
+                                    | Confidence: {{ "%.1f"|format(violation.confidence_score * 100) }}%
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    {% if violation.content_sample %}
+                    <div class="mb-2">
+                        <label class="form-label"><small><strong>Content Sample:</strong></small></label>
+                        <div class="content-sample">
+                            {{ violation.content_sample[:200] }}
+                            {% if violation.content_sample|length > 200 %}...{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i>
+                                {{ violation.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            {% if violation.user_id %}
+                                <small class="text-muted">
+                                    <i class="fas fa-user"></i>
+                                    User ID: {{ violation.user_id }}
+                                </small>
+                            {% else %}
+                                <small class="text-muted">
+                                    <i class="fas fa-globe"></i>
+                                    Anonymous Session
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="text-end">
+                        {% if violation.auto_resolved %}
+                            <span class="badge bg-success mb-2">Auto-Resolved</span>
+                        {% elif violation.manual_review_required %}
+                            <span class="badge bg-warning mb-2">Needs Review</span>
+                        {% else %}
+                            <span class="badge bg-secondary mb-2">Logged</span>
+                        {% endif %}
+                        
+                        <br>
+                        
+                        {% if not violation.auto_resolved and violation.manual_review_required %}
+                        <div class="btn-group mt-2">
+                            <button class="btn btn-outline-success btn-sm" onclick="resolveViolation('{{ violation.id }}', 'resolve')">
+                                <i class="fas fa-check"></i> Resolve
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="resolveViolation('{{ violation.id }}', 'escalate')">
+                                <i class="fas fa-exclamation-triangle"></i> Escalate
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if violation.action_taken %}
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <strong>Action:</strong> {{ violation.action_taken|replace('_', ' ')|title }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Pagination -->
+        {% if violations.pages > 1 %}
+        <nav aria-label="Violations pagination">
+            <ul class="pagination justify-content-center">
+                {% if violations.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_subscription.safety_monitoring', 
+                                                              page=violations.prev_num, 
+                                                              severity=severity_filter,
+                                                              resolved=resolved_filter) }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in violations.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != violations.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_subscription.safety_monitoring', 
+                                                                      page=page_num, 
+                                                                      severity=severity_filter,
+                                                                      resolved=resolved_filter) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if violations.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_subscription.safety_monitoring', 
+                                                              page=violations.next_num, 
+                                                              severity=severity_filter,
+                                                              resolved=resolved_filter) }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shield-check fa-4x text-success mb-4"></i>
+            <h4>No Safety Violations Found</h4>
+            <p class="text-muted">
+                {% if severity_filter or resolved_filter %}
+                    No violations match your current filter criteria.
+                {% else %}
+                    Great! No safety violations have been detected.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function resolveViolation(violationId, action) {
+    const actionText = action === 'resolve' ? 'resolve' : 'escalate';
+    const confirmText = action === 'resolve' 
+        ? 'Mark this safety violation as resolved?' 
+        : 'Escalate this violation to critical status?';
+    
+    if (confirm(confirmText)) {
+        fetch(`/admin/subscription/safety/${violationId}/resolve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `action=${action}`
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert(`Error ${actionText}ing violation. Please try again.`);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function exportViolations() {
+    const params = new URLSearchParams({
+        severity: '{{ severity_filter }}',
+        resolved: '{{ resolved_filter }}'
+    });
+    window.location.href = '/admin/subscription/safety/export?' + params.toString();
+}
+</script>
+{% endblock %}

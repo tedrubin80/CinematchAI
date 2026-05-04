@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Cinematch{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .dashboard-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease;
+        border-left: 4px solid #667eea;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    .stat-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+    .revenue-card {
+        border-left-color: #28a745 !important;
+    }
+    .revenue-card .stat-number {
+        color: #28a745;
+    }
+    .danger-card {
+        border-left-color: #dc3545 !important;
+    }
+    .danger-card .stat-number {
+        color: #dc3545;
+    }
+    .warning-card {
+        border-left-color: #ffc107 !important;
+    }
+    .warning-card .stat-number {
+        color: #ffc107;
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 25px;
+    }
+    .admin-nav {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    .admin-nav .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .admin-nav .nav-link:hover {
+        background: #e9ecef;
+    }
+    .admin-nav .nav-link.active {
+        background: #667eea;
+        color: white;
+    }
+    .activity-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid #667eea;
+    }
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Admin Header -->
+    <div class="dashboard-card">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Cinematch Admin Dashboard
+                </h2>
+                <p class="mb-0 opacity-75">
+                    Subscription Management & System Control Center
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex flex-column">
+                    <small>Last Updated: <span id="last-updated"></span></small>
+                    <small>Admin: {{ current_user.username }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('admin_subscription.dashboard') }}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_users') }}">
+                    <i class="fas fa-users"></i> Users ({{ total_users }})
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_ai_models') }}">
+                    <i class="fas fa-robot"></i> AI Models
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.analytics') }}">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.safety_monitoring') }}">
+                    <i class="fas fa-shield-alt"></i> Safety
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.system_settings') }}">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Key Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stat-number">{{ total_users }}</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <i class="fas fa-users fa-2x text-primary opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stat-number">{{ active_paid_subs }}</div>
+                        <div class="stat-label">Paid Subscriptions</div>
+                    </div>
+                    <i class="fas fa-crown fa-2x text-primary opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card revenue-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stat-number">${{ "%.2f"|format(monthly_revenue) }}</div>
+                        <div class="stat-label">Monthly Revenue</div>
+                    </div>
+                    <i class="fas fa-dollar-sign fa-2x text-success opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card warning-card">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <div class="stat-number">{{ age_verifications_today }}</div>
+                        <div class="stat-label">Age Verifications Today</div>
+                    </div>
+                    <i class="fas fa-shield-check fa-2x text-warning opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-time Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-pie"></i>
+                    Subscription Tiers
+                </h5>
+                <canvas id="tierChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-bar"></i>
+                    Daily Usage
+                </h5>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3 class="text-primary">{{ daily_usage.total_queries or 0 }}</h3>
+                        <p class="text-muted">Total Queries Today</p>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="text-success">${{ "%.4f"|format(daily_usage.total_cost or 0) }}</h3>
+                        <p class="text-muted">API Costs Today</p>
+                    </div>
+                </div>
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: 65%" aria-valuenow="65" aria-valuemax="100"></div>
+                </div>
+                <small class="text-muted">Daily query volume vs. target</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-clock"></i>
+                    Recent Subscription Events
+                </h5>
+                {% if recent_events %}
+                    {% for event in recent_events %}
+                    <div class="activity-item">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                <strong>{{ event.event_type|replace('_', ' ')|title }}</strong>
+                                <small class="text-muted d-block">
+                                    {{ event.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                </small>
+                            </div>
+                            <div>
+                                {% if event.processed %}
+                                    <span class="badge bg-success">Processed</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-3x mb-3"></i>
+                        <p>No recent subscription events</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-tools"></i>
+                    Quick Actions
+                </h5>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="refreshStats()">
+                        <i class="fas fa-sync-alt"></i> Refresh Statistics
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportData()">
+                        <i class="fas fa-download"></i> Export User Data
+                    </button>
+                    <button class="btn btn-outline-warning" onclick="runHorrorExtraction()">
+                        <i class="fas fa-film"></i> Run Horror Extraction
+                    </button>
+                    <button class="btn btn-outline-info" onclick="testAiModels()">
+                        <i class="fas fa-robot"></i> Test AI Models
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <h6 class="mb-3">System Status</h6>
+                <div class="mb-2">
+                    <small class="text-muted">Database:</small>
+                    <span class="badge bg-success float-end">Online</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Ollama:</small>
+                    <span class="badge bg-success float-end" id="ollama-status">Checking...</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">External Drive:</small>
+                    <span class="badge bg-success float-end">Mounted</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Stripe:</small>
+                    <span class="badge bg-warning float-end">Test Mode</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Initialize Charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Subscription Tiers Pie Chart
+    const tierData = {
+        {% for tier, count in tier_stats %}
+        '{{ tier }}': {{ count }},
+        {% endfor %}
+    };
+    
+    const ctx = document.getElementById('tierChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(tierData).map(tier => tier.charAt(0).toUpperCase() + tier.slice(1)),
+            datasets: [{
+                data: Object.values(tierData),
+                backgroundColor: [
+                    '#28a745', // Free - Green
+                    '#667eea', // Basic - Blue
+                    '#ffc107'  // Premium - Gold
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Auto-refresh statistics every 30 seconds
+    setInterval(refreshStats, 30000);
+});
+
+function refreshStats() {
+    fetch('/admin/subscription/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update real-time statistics
+            if (data.error) {
+                console.error('Error fetching stats:', data.error);
+                return;
+            }
+            
+            // Update last updated time
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+            
+            // Update counters if elements exist
+            const elements = {
+                'users-today': data.users_today,
+                'verifications-today': data.verifications_today,
+                'queries-today': data.queries_today,
+                'violations-today': data.violations_today
+            };
+            
+            for (const [id, value] of Object.entries(elements)) {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value;
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing stats:', error);
+        });
+}
+
+function exportData() {
+    if (confirm('Export all user subscription data? This may take a moment.')) {
+        window.location.href = '/admin/subscription/export/users';
+    }
+}
+
+function runHorrorExtraction() {
+    if (confirm('Run horror movie extraction? This process may take several minutes.')) {
+        fetch('/admin/subscription/actions/extract-horror', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Horror extraction started successfully!');
+                } else {
+                    alert('Error starting extraction: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            });
+    }
+}
+
+// Update last updated time
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString();
+    document.getElementById('last-updated').textContent = timeString;
+}
+
+// Update time on load and every 30 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    updateTime();
+    setInterval(updateTime, 30000);
+});
+
+function testAiModels() {
+    fetch('/admin/subscription/actions/test-ai-models', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`AI Models Test Results:\n${JSON.stringify(data.results, null, 2)}`);
+            } else {
+                alert('Error testing models: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+}
+
+// Check Ollama status
+fetch('/admin/subscription/api/ollama-status')
+    .then(response => response.json())
+    .then(data => {
+        const status = document.getElementById('ollama-status');
+        if (data.running) {
+            status.textContent = 'Running';
+            status.className = 'badge bg-success float-end';
+        } else {
+            status.textContent = 'Offline';
+            status.className = 'badge bg-danger float-end';
+        }
+    })
+    .catch(error => {
+        const status = document.getElementById('ollama-status');
+        status.textContent = 'Unknown';
+        status.className = 'badge bg-secondary float-end';
+    });
+</script>
+{% endblock %}

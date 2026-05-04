@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Dashboard - Cinematch{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+    .subscription-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .tier-card {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .tier-card:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+    }
+    .tier-card.current-tier {
+        border-color: #28a745;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    }
+    .tier-card.current-tier::before {
+        content: "CURRENT PLAN";
+        position: absolute;
+        top: 10px;
+        right: -30px;
+        background: #28a745;
+        color: white;
+        padding: 5px 40px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        transform: rotate(45deg);
+    }
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+    .feature-list li {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+    }
+    .feature-list li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
+    }
+    .age-verification-banner {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: #212529;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-left: 5px solid #fd7e14;
+    }
+    .usage-meter {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 20px;
+        overflow: hidden;
+        position: relative;
+    }
+    .usage-fill {
+        background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    .usage-fill.high {
+        background: linear-gradient(90deg, #fd7e14 0%, #dc3545 100%);
+    }
+    .minor-notice {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 1px solid #2196f3;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-crown text-warning"></i>
+                Subscription Dashboard
+            </h2>
+        </div>
+    </div>
+
+    <!-- Age Verification Status -->
+    {% if not subscription.age_verified %}
+    <div class="age-verification-banner">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+            <div class="flex-grow-1">
+                <h5 class="mb-1">Age Verification Required</h5>
+                <p class="mb-2">You must verify your age to access Cinematch features, including the free tier.</p>
+                <a href="{{ url_for('subscription.verify_age') }}" class="btn btn-dark btn-sm">
+                    <i class="fas fa-shield-alt"></i> Verify Age Now
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Minor Notice -->
+    {% if current_user.is_minor and subscription.age_verified %}
+    <div class="minor-notice">
+        <div class="d-flex align-items-start">
+            <i class="fas fa-info-circle fa-2x text-primary me-3 mt-1"></i>
+            <div>
+                <h6 class="text-primary mb-2">Youth Account (Under 18)</h6>
+                <p class="mb-2">As a user under 18, you have access to age-appropriate content and features.</p>
+                {% if not current_user.parental_consent %}
+                <p class="mb-2 text-muted">
+                    <i class="fas fa-lock"></i>
+                    Paid subscriptions require parental consent.
+                    <a href="{{ url_for('subscription.parental_consent') }}" class="text-decoration-none">Set up parental consent</a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Current Subscription Status -->
+    <div class="subscription-card">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-2">
+                    {% if subscription.tier == 'free' %}
+                        <i class="fas fa-user"></i> Free Tier
+                    {% elif subscription.tier == 'basic' %}
+                        <i class="fas fa-star"></i> Basic Plan
+                    {% elif subscription.tier == 'premium' %}
+                        <i class="fas fa-crown"></i> Premium Plan
+                    {% endif %}
+                </h3>
+                <p class="mb-2 opacity-75">
+                    {% if subscription.is_active %}
+                        Status: <span class="badge bg-success">Active</span>
+                    {% else %}
+                        Status: <span class="badge bg-danger">{{ subscription.status|title }}</span>
+                    {% endif %}
+                    
+                    {% if subscription.age_verified %}
+                        <span class="badge bg-primary ms-2">
+                            <i class="fas fa-shield-check"></i> Age Verified
+                        </span>
+                    {% endif %}
+                </p>
+                
+                {% if subscription.current_period_end %}
+                <p class="mb-0 opacity-75">
+                    {% if subscription.cancel_at_period_end %}
+                        <i class="fas fa-clock"></i> Expires: {{ subscription.current_period_end }}
+                    {% else %}
+                        <i class="fas fa-calendar-alt"></i> Renews: {{ subscription.current_period_end }}
+                        ({{ subscription.days_until_renewal }} days)
+                    {% endif %}
+                </p>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-end">
+                {% if subscription.tier != 'free' %}
+                <button class="btn btn-outline-light btn-sm" onclick="cancelSubscription()">
+                    <i class="fas fa-times"></i> Cancel Plan
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Usage Information -->
+    {% if subscription.age_verified %}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        Daily Usage
+                    </h5>
+                    <div id="usage-info">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Queries Today</span>
+                            <span id="usage-count">Loading...</span>
+                        </div>
+                        <div class="usage-meter mb-2">
+                            <div class="usage-fill" id="usage-bar" style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted" id="usage-text">Loading usage information...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-list-check text-success"></i>
+                        Available Features
+                    </h5>
+                    <ul class="feature-list">
+                        {% for feature in subscription.features %}
+                        <li>
+                            {% if feature == 'age_verification_required' %}
+                                Age-appropriate content filtering
+                            {% elif feature == 'basic_recommendations' %}
+                                Basic movie recommendations
+                            {% elif feature == 'enhanced_recommendations' %}
+                                Enhanced AI recommendations
+                            {% elif feature == 'dual_agent_analysis' %}
+                                Dual AI agent analysis
+                            {% elif feature == 'unlimited_recommendations' %}
+                                Unlimited recommendations
+                            {% else %}
+                                {{ feature|replace('_', ' ')|title }}
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Available Subscription Tiers -->
+    {% if subscription.age_verified %}
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-4">
+                <i class="fas fa-trophy text-warning"></i>
+                Available Plans
+            </h4>
+        </div>
+        
+        {% for tier_name in available_tiers %}
+        {% set tier = tier_details[tier_name] %}
+        <div class="col-md-4 mb-4">
+            <div class="card tier-card h-100 {% if subscription.tier == tier_name %}current-tier{% endif %}">
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        {% if tier_name == 'free' %}
+                            <i class="fas fa-user text-secondary"></i>
+                        {% elif tier_name == 'basic' %}
+                            <i class="fas fa-star text-primary"></i>
+                        {% elif tier_name == 'premium' %}
+                            <i class="fas fa-crown text-warning"></i>
+                        {% endif %}
+                        {{ tier.name }}
+                    </h5>
+                    
+                    <div class="mb-3">
+                        {% if tier.price == 0 %}
+                            <h3 class="text-success">Free</h3>
+                        {% else %}
+                            <h3 class="text-primary">${{ "%.2f"|format(tier.price / 100) }}<small class="text-muted">/month</small></h3>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="card-text text-muted">{{ tier.description }}</p>
+                    
+                    <ul class="feature-list text-start mb-4">
+                        <li>{{ tier.queries_per_day if tier.queries_per_day != float('inf') else 'Unlimited' }} queries/day</li>
+                        {% for feature in tier.features %}
+                        {% if feature != 'age_verification_required' %}
+                        <li>{{ feature|replace('_', ' ')|title }}</li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                    
+                    {% if subscription.tier != tier_name %}
+                        {% if tier_name in available_tiers %}
+                        <button class="btn btn-primary btn-sm w-100" onclick="subscribeTo('{{ tier_name }}')">
+                            {% if tier_name == 'free' %}
+                                Switch to Free
+                            {% else %}
+                                Upgrade to {{ tier.name }}
+                            {% endif %}
+                        </button>
+                        {% else %}
+                        <button class="btn btn-secondary btn-sm w-100" disabled>
+                            {% if current_user.is_minor %}
+                                Requires Parental Consent
+                            {% else %}
+                                Not Available
+                            {% endif %}
+                        </button>
+                        {% endif %}
+                    {% else %}
+                        <button class="btn btn-success btn-sm w-100" disabled>
+                            <i class="fas fa-check"></i> Current Plan
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Subscription Modal -->
+<div class="modal fade" id="subscriptionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Subscribe to <span id="modal-tier-name"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="payment-element">
+                    <!-- Stripe Elements will create form elements here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submit-payment">
+                    <span id="button-text">Subscribe</span>
+                    <div id="spinner" class="spinner-border spinner-border-sm ms-2 d-none"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Load usage information
+document.addEventListener('DOMContentLoaded', function() {
+    {% if subscription.age_verified %}
+    loadUsageInfo();
+    {% endif %}
+});
+
+function loadUsageInfo() {
+    fetch('/subscription/usage')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const usagePercent = (data.daily_usage / data.daily_limit) * 100;
+                const usageBar = document.getElementById('usage-bar');
+                const usageCount = document.getElementById('usage-count');
+                const usageText = document.getElementById('usage-text');
+                
+                usageCount.textContent = `${data.daily_usage} / ${data.daily_limit === Infinity ? '∞' : data.daily_limit}`;
+                usageBar.style.width = `${Math.min(usagePercent, 100)}%`;
+                
+                if (usagePercent > 80) {
+                    usageBar.classList.add('high');
+                }
+                
+                if (data.remaining_queries === 0 && data.daily_limit !== Infinity) {
+                    usageText.textContent = 'Daily limit reached. Upgrade for more queries.';
+                    usageText.classList.add('text-warning');
+                } else {
+                    usageText.textContent = `${data.remaining_queries === Infinity ? 'Unlimited' : data.remaining_queries} queries remaining today`;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading usage info:', error);
+            document.getElementById('usage-text').textContent = 'Error loading usage information';
+        });
+}
+
+function subscribeTo(tier) {
+    if (tier === 'free') {
+        // Free tier doesn't need payment
+        fetch(`/subscription/subscribe/${tier}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error subscribing:', error);
+            alert('Subscription failed. Please try again.');
+        });
+    } else {
+        // Paid tiers need payment setup
+        document.getElementById('modal-tier-name').textContent = tier.charAt(0).toUpperCase() + tier.slice(1);
+        const modal = new bootstrap.Modal(document.getElementById('subscriptionModal'));
+        modal.show();
+        
+        // Initialize Stripe payment (would need actual Stripe integration)
+        // This is a placeholder for the payment form
+        document.getElementById('payment-element').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-credit-card"></i>
+                Payment integration would be implemented here with Stripe Elements.
+                For now, this is a demo showing the subscription flow.
+            </div>
+        `;
+    }
+}
+
+function cancelSubscription() {
+    if (confirm('Are you sure you want to cancel your subscription? You will be downgraded to the free tier at the end of your billing period.')) {
+        fetch('/subscription/cancel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                cancel_at_period_end: true
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect;
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error cancelling subscription:', error);
+            alert('Cancellation failed. Please try again.');
+        });
+    }
+}
+</script>
+{% endblock %}

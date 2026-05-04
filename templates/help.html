@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎬 Cinematch - Help & Guide</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom styles -->
+    <style>
+        :root {
+            --primary-color: #007acc;
+            --secondary-color: #2b2b2b;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .help-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin: 2rem auto;
+            padding: 2rem;
+            max-width: 1200px;
+        }
+
+        .help-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .help-header h1 {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .help-section {
+            margin-bottom: 3rem;
+        }
+
+        .help-section h2 {
+            color: var(--secondary-color);
+            border-left: 4px solid var(--primary-color);
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .parameter-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.3s ease;
+        }
+
+        .parameter-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .parameter-name {
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .parameter-range {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin: 0.25rem 0;
+        }
+
+        .parameter-description {
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .parameter-examples {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .example-item {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: #e3f2fd;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .example-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tip-card {
+            background: linear-gradient(135deg, #fff, #f8f9fa);
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid #dee2e6;
+            transition: transform 0.3s ease;
+        }
+
+        .tip-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .tip-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .back-button {
+            background: var(--primary-color);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 2rem;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #005a9e;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .alert-custom {
+            border: none;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .code-snippet {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 0.5rem 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="help-container">
+            <!-- Header -->
+            <div class="help-header">
+                <h1><i class="fas fa-question-circle"></i> Cinematch Help & Guide</h1>
+                <p class="lead">Master the art of AI-powered movie recommendations with our comprehensive guide</p>
+                <a href="/" class="back-button">
+                    <i class="fas fa-arrow-left"></i> Back to Chat
+                </a>
+            </div>
+
+            {% if help_data.error %}
+            <div class="alert alert-warning alert-custom">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Service Unavailable:</strong> {{ help_data.error }}
+            </div>
+            {% endif %}
+
+            {% if help_data.parameters %}
+            <!-- AI Parameters Section -->
+            <div class="help-section">
+                <h2><i class="fas fa-sliders-h"></i> AI Parameters Explained</h2>
+                <p class="mb-4">Fine-tune your movie recommendations by adjusting these AI parameters:</p>
+
+                {% for param_name, param_info in help_data.parameters.items() %}
+                <div class="parameter-card">
+                    <div class="parameter-name">
+                        <i class="fas fa-cog"></i> {{ param_name.title() }}
+                    </div>
+
+                    {% if param_info.range %}
+                    <div class="parameter-range">
+                        Range: {{ param_info.range.min }} - {{ param_info.range.max }}
+                        {% if param_info.range.default %}
+                        (Default: {{ param_info.range.default }})
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="parameter-description">
+                        {{ param_info.description }}
+                    </div>
+
+                    {% if param_info.examples %}
+                    <div class="parameter-examples">
+                        <strong><i class="fas fa-lightbulb"></i> Examples:</strong>
+                        {% for example in param_info.examples %}
+                        <div class="example-item">
+                            <span class="example-value">{{ example.value }}</span>: {{ example.description }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if help_data.examples %}
+            <!-- Usage Examples Section -->
+            <div class="help-section">
+                <h2><i class="fas fa-code"></i> Usage Examples</h2>
+                <p class="mb-4">See how different parameter combinations affect your movie recommendations:</p>
+
+                {% for category, examples in help_data.examples.items() %}
+                <h4><i class="fas fa-play-circle"></i> {{ category.title() }} Recommendations</h4>
+                {% for example in examples %}
+                <div class="parameter-card">
+                    <div class="parameter-name">{{ example.name }}</div>
+                    <div class="parameter-description">{{ example.description }}</div>
+
+                    <div class="code-snippet">
+                        <strong>Parameters:</strong><br>
+                        {% for key, value in example.parameters.items() %}
+                        {{ key }}: {{ value }}<br>
+                        {% endfor %}
+                    </div>
+
+                    <div class="parameter-examples">
+                        <strong>Example Query:</strong> "{{ example.example_query }}"
+                    </div>
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if help_data.tips %}
+            <!-- Optimization Tips Section -->
+            <div class="help-section">
+                <h2><i class="fas fa-rocket"></i> Optimization Tips</h2>
+                <p class="mb-4">Pro tips to get the most out of Cinematch's AI recommendations:</p>
+
+                <div class="tips-grid">
+                    {% for tip in help_data.tips %}
+                    <div class="tip-card">
+                        <div class="tip-icon">
+                            <i class="fas {{ tip.icon }}"></i>
+                        </div>
+                        <h5>{{ tip.title }}</h5>
+                        <p>{{ tip.description }}</p>
+                        {% if tip.example %}
+                        <div class="code-snippet">
+                            {{ tip.example }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Default Help Content (if service unavailable) -->
+            {% if not help_data.parameters and not help_data.examples and not help_data.tips %}
+            <div class="help-section">
+                <h2><i class="fas fa-info-circle"></i> Getting Started with Cinematch</h2>
+
+                <div class="parameter-card">
+                    <div class="parameter-name">🎬 How to Use Cinematch</div>
+                    <div class="parameter-description">
+                        Cinematch is your AI-powered movie recommendation assistant. Simply type your movie preferences,
+                        mood, or ask for recommendations in natural language.
+                    </div>
+                    <div class="parameter-examples">
+                        <strong>Example queries:</strong>
+                        <div class="example-item">"I want a funny movie for tonight"</div>
+                        <div class="example-item">"Recommend horror movies like The Conjuring"</div>
+                        <div class="example-item">"What's a good sci-fi movie from the 90s?"</div>
+                    </div>
+                </div>
+
+                <div class="parameter-card">
+                    <div class="parameter-name">🤖 AI Parameters</div>
+                    <div class="parameter-description">
+                        Adjust AI parameters to fine-tune your recommendations:
+                    </div>
+                    <div class="parameter-examples">
+                        <div class="example-item"><strong>Temperature (0.0-1.0):</strong> Controls creativity. Lower = more focused, Higher = more creative</div>
+                        <div class="example-item"><strong>Max Tokens (50-500):</strong> Controls response length</div>
+                        <div class="example-item"><strong>Top P (0.0-1.0):</strong> Controls word selection diversity</div>
+                        <div class="example-item"><strong>Top K (1-100):</strong> Limits vocabulary choices</div>
+                    </div>
+                </div>
+
+                <div class="parameter-card">
+                    <div class="parameter-name">🛡️ Safety Features</div>
+                    <div class="parameter-description">
+                        Cinematch includes built-in safety features to ensure age-appropriate recommendations
+                        and content filtering for a safe movie discovery experience.
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="text-center mt-5 pt-4 border-top">
+                <p class="text-muted">
+                    <i class="fas fa-heart text-danger"></i>
+                    Need more help? Contact us at
+                    <a href="mailto:support@cinematch.online">support@cinematch.online</a>
+                </p>
+                <p class="text-muted">
+                    <small>
+                        Cinematch uses advanced AI to provide personalized movie recommendations.
+                        All recommendations are filtered for safety and appropriateness.
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

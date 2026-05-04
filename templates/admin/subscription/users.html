@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Cinematch Admin{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .filter-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    .user-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease;
+        border-left: 4px solid #e9ecef;
+    }
+    .user-card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    .user-card.premium {
+        border-left-color: #ffc107;
+    }
+    .user-card.basic {
+        border-left-color: #667eea;
+    }
+    .user-card.minor {
+        border-left-color: #28a745;
+    }
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    .admin-nav {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    .admin-nav .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .admin-nav .nav-link:hover {
+        background: #e9ecef;
+    }
+    .admin-nav .nav-link.active {
+        background: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">
+                    <i class="fas fa-users"></i>
+                    User Management
+                </h2>
+                <p class="mb-0 opacity-75">Manage user accounts, subscriptions, and permissions</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-light" onclick="exportUsers()">
+                    <i class="fas fa-download"></i> Export Users
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.dashboard') }}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('admin_subscription.manage_users') }}">
+                    <i class="fas fa-users"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_ai_models') }}">
+                    <i class="fas fa-robot"></i> AI Models
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.analytics') }}">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.safety_monitoring') }}">
+                    <i class="fas fa-shield-alt"></i> Safety
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.system_settings') }}">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="filter-card">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search Users</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ search }}" placeholder="Username or email...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="filter_tier" class="form-label">Subscription Tier</label>
+                <select class="form-select" id="filter_tier" name="filter_tier">
+                    <option value="">All Tiers</option>
+                    <option value="free" {% if filter_tier == 'free' %}selected{% endif %}>Free</option>
+                    <option value="basic" {% if filter_tier == 'basic' %}selected{% endif %}>Basic</option>
+                    <option value="premium" {% if filter_tier == 'premium' %}selected{% endif %}>Premium</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filter_age" class="form-label">Age Group</label>
+                <select class="form-select" id="filter_age" name="filter_age">
+                    <option value="">All Ages</option>
+                    <option value="minor" {% if filter_age == 'minor' %}selected{% endif %}>Minors (Under 18)</option>
+                    <option value="adult" {% if filter_age == 'adult' %}selected{% endif %}>Adults (18+)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users List -->
+    {% if users %}
+        {% for user in users.items %}
+        <div class="user-card {% if user.subscription and user.subscription.tier %}{{ user.subscription.tier }}{% endif %} {% if user.is_minor %}minor{% endif %}">
+            <div class="row align-items-center">
+                <div class="col-md-1">
+                    <div class="user-avatar">
+                        {{ user.username[0].upper() }}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="mb-1">{{ user.username }}</h6>
+                    <small class="text-muted">{{ user.email }}</small>
+                    {% if user.is_admin %}
+                        <span class="badge bg-danger ms-2">Admin</span>
+                    {% endif %}
+                    {% if user.is_minor %}
+                        <span class="badge bg-success ms-1">Minor</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-2">
+                    {% if user.subscription %}
+                        <span class="badge bg-{% if user.subscription.tier == 'premium' %}warning{% elif user.subscription.tier == 'basic' %}primary{% else %}secondary{% endif %}">
+                            {{ user.subscription.tier.title() }}
+                        </span>
+                        <br>
+                        <small class="text-muted">{{ user.subscription.status.title() }}</small>
+                    {% else %}
+                        <span class="badge bg-secondary">No Subscription</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-2">
+                    {% if user.age_verification_date %}
+                        <i class="fas fa-check-circle text-success"></i>
+                        <small class="text-success">Age Verified</small>
+                        <br>
+                        <small class="text-muted">Age: {{ user.age or 'N/A' }}</small>
+                    {% else %}
+                        <i class="fas fa-exclamation-triangle text-warning"></i>
+                        <small class="text-warning">Not Verified</small>
+                    {% endif %}
+                </div>
+                <div class="col-md-2">
+                    <small class="text-muted">Joined</small><br>
+                    <small>{{ user.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+                <div class="col-md-2 text-end">
+                    <div class="btn-group">
+                        <a href="{{ url_for('admin_subscription.user_detail', user_id=user.id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle dropdown-toggle-split" 
+                                type="button" data-bs-toggle="dropdown">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('admin_subscription.user_detail', user_id=user.id) }}">
+                                <i class="fas fa-user"></i> View Details</a></li>
+                            {% if user.subscription and user.subscription.tier != 'free' %}
+                            <li><a class="dropdown-item text-warning" href="#" onclick="cancelSubscription('{{ user.id }}', '{{ user.username }}')">
+                                <i class="fas fa-times"></i> Cancel Subscription</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item text-info" href="#" onclick="resetUsage('{{ user.id }}', '{{ user.username }}')">
+                                <i class="fas fa-redo"></i> Reset Daily Usage</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="suspendUser('{{ user.id }}', '{{ user.username }}')">
+                                <i class="fas fa-ban"></i> Suspend User</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Pagination -->
+        {% if users.pages > 1 %}
+        <nav aria-label="Users pagination">
+            <ul class="pagination justify-content-center">
+                {% if users.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_subscription.manage_users', 
+                                                              page=users.prev_num, 
+                                                              search=search, 
+                                                              filter_tier=filter_tier,
+                                                              filter_age=filter_age) }}">Previous</a>
+                    </li>
+                {% endif %}
+                
+                {% for page_num in users.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != users.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('admin_subscription.manage_users', 
+                                                                      page=page_num, 
+                                                                      search=search, 
+                                                                      filter_tier=filter_tier,
+                                                                      filter_age=filter_age) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">…</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if users.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin_subscription.manage_users', 
+                                                              page=users.next_num, 
+                                                              search=search, 
+                                                              filter_tier=filter_tier,
+                                                              filter_age=filter_age) }}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-4x text-muted mb-4"></i>
+            <h4>No Users Found</h4>
+            <p class="text-muted">Try adjusting your search or filter criteria.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function exportUsers() {
+    if (confirm('Export user data to CSV? This may take a moment for large datasets.')) {
+        const params = new URLSearchParams({
+            search: '{{ search }}',
+            filter_tier: '{{ filter_tier }}',
+            filter_age: '{{ filter_age }}'
+        });
+        window.location.href = '/admin/subscription/export/users?' + params.toString();
+    }
+}
+
+function cancelSubscription(userId, username) {
+    if (confirm(`Cancel subscription for user "${username}"? This action cannot be undone.`)) {
+        fetch(`/admin/subscription/user/${userId}/subscription`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=cancel'
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error cancelling subscription. Please try again.');
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function resetUsage(userId, username) {
+    if (confirm(`Reset daily usage for user "${username}"?`)) {
+        fetch(`/admin/subscription/user/${userId}/subscription`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'action=reset_usage'
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Daily usage reset successfully!');
+            } else {
+                alert('Error resetting usage. Please try again.');
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function suspendUser(userId, username) {
+    if (confirm(`Suspend user "${username}"? This will prevent them from accessing the service.`)) {
+        fetch(`/admin/subscription/user/${userId}/suspend`, {
+            method: 'POST'
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error suspending user. Please try again.');
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+</script>
+{% endblock %}

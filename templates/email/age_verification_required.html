@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Age Verification Required - Cinematch</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #ffc107; color: black; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+        .alert { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .button { background: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Age Verification Required</h1>
+    </div>
+    <div class="content">
+        <h2>Hi {{ user_name }},</h2>
+        
+        <div class="alert">
+            <strong>We need to verify your age before you can access Cinematch features.</strong>
+        </div>
+        
+        <p>To ensure compliance with content regulations and provide age-appropriate recommendations, please complete your age verification.</p>
+        
+        {% if requires_parental_consent %}
+        <p><strong>Since you're under 18, parental consent is required for paid subscriptions.</strong></p>
+        {% endif %}
+        
+        <a href="https://cinematch.online/subscription/verify-age" class="button">Verify Age</a>
+        
+        <p>This is a one-time verification to keep our community safe and compliant.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 Cinematch. All rights reserved.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Cinematch {{ tier_name }}!</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+        .tier-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+        .button { background: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎬 Welcome to Cinematch {{ tier_name }}!</h1>
+    </div>
+    <div class="content">
+        <h2>Hi {{ user_name }},</h2>
+        <p>Welcome to Cinematch! Your {{ tier_name }} subscription is now active.</p>
+        
+        <div class="tier-info">
+            <h3>Your Subscription Details:</h3>
+            <ul>
+                <li><strong>Tier:</strong> {{ tier_name }}</li>
+                <li><strong>Price:</strong> ${{ monthly_price }}/month</li>
+                <li><strong>Features:</strong></li>
+                <ul>
+                    {% for feature in features %}
+                    <li>{{ feature }}</li>
+                    {% endfor %}
+                </ul>
+            </ul>
+        </div>
+        
+        <p>You can now start discovering horror movies with our AI-powered recommendations!</p>
+        
+        <a href="https://cinematch.online/chat" class="button">Start Exploring Movies</a>
+        
+        <p>If you have any questions, feel free to contact us at <a href="mailto:support@cinematch.online">support@cinematch.online</a>.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 Cinematch. All rights reserved.</p>
+        <p>You received this email because you subscribed to Cinematch.</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Age Verification - Cinematch{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    .verification-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .verification-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    .age-info {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 1px solid #2196f3;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .privacy-notice {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+    .btn-verify {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-verify:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="verification-container">
+        <!-- Header -->
+        <div class="verification-card text-center">
+            <i class="fas fa-shield-alt fa-3x mb-3"></i>
+            <h2 class="mb-3">Age Verification Required</h2>
+            <p class="mb-0">To comply with age-appropriate content guidelines, we need to verify your age before you can access Cinematch features.</p>
+        </div>
+
+        {% if age_verified %}
+        <!-- Already Verified -->
+        <div class="form-card text-center">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h4 class="text-success mb-3">Age Successfully Verified</h4>
+            <p class="text-muted mb-4">Your age has been verified and you can now access all age-appropriate features.</p>
+            <a href="{{ url_for('subscription.index') }}" class="btn btn-verify">
+                <i class="fas fa-arrow-right"></i> Continue to Dashboard
+            </a>
+        </div>
+        {% else %}
+        <!-- Verification Form -->
+        <div class="form-card">
+            <div class="age-info">
+                <h6 class="text-primary mb-2">
+                    <i class="fas fa-info-circle"></i>
+                    Age Requirements
+                </h6>
+                <ul class="mb-0">
+                    <li><strong>13-17 years:</strong> Access to age-appropriate content and free tier</li>
+                    <li><strong>18+ years:</strong> Full access to all features and subscription tiers</li>
+                    <li><strong>Under 13:</strong> Unfortunately, Cinematch is not available for users under 13</li>
+                </ul>
+            </div>
+
+            <form method="POST" id="age-verification-form">
+                <div class="mb-4">
+                    <label for="birth_date" class="form-label">
+                        <i class="fas fa-calendar"></i>
+                        Date of Birth <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" 
+                           class="form-control form-control-lg" 
+                           id="birth_date" 
+                           name="birth_date" 
+                           required
+                           max="{{ (datetime.datetime.now() - datetime.timedelta(days=365*10)).strftime('%Y-%m-%d') }}"
+                           min="{{ (datetime.datetime.now() - datetime.timedelta(days=365*120)).strftime('%Y-%m-%d') }}">
+                    <div class="form-text">
+                        <i class="fas fa-lock"></i>
+                        Your birth date is used only for age verification and content filtering
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="age_consent" required>
+                        <label class="form-check-label" for="age_consent">
+                            I certify that the birth date I provided is accurate and I understand that providing false information is prohibited.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="terms_consent" required>
+                        <label class="form-check-label" for="terms_consent">
+                            I agree to Cinematch's 
+                            <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a>
+                            and 
+                            <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-verify btn-lg">
+                        <i class="fas fa-shield-check"></i>
+                        Verify My Age
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Privacy Notice -->
+        <div class="privacy-notice">
+            <h6 class="mb-3">
+                <i class="fas fa-user-shield text-primary"></i>
+                Privacy & Security
+            </h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>Birth date stored securely</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Never shared with third parties</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>Used only for content filtering</li>
+                        <li><i class="fas fa-check text-success me-2"></i>COPPA compliant</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms of Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Age Verification Requirements</h6>
+                <p>By using Cinematch, you agree that:</p>
+                <ul>
+                    <li>You will provide accurate age information</li>
+                    <li>You understand that content is filtered based on your age</li>
+                    <li>Users under 13 are not permitted to use the service</li>
+                    <li>Minors (13-17) may have restricted access to certain features</li>
+                </ul>
+                
+                <h6>Subscription Terms</h6>
+                <p>For subscription services:</p>
+                <ul>
+                    <li>Free tier requires age verification</li>
+                    <li>Paid subscriptions for minors require parental consent</li>
+                    <li>All subscriptions are subject to age-appropriate content filtering</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Privacy Policy - Age Verification</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Information We Collect</h6>
+                <ul>
+                    <li><strong>Birth Date:</strong> Used solely for age verification and content filtering</li>
+                    <li><strong>Age Category:</strong> Determined from birth date (child, teen, adult)</li>
+                </ul>
+                
+                <h6>How We Use This Information</h6>
+                <ul>
+                    <li>Ensure age-appropriate content recommendations</li>
+                    <li>Comply with COPPA and other child protection regulations</li>
+                    <li>Apply appropriate subscription tier restrictions</li>
+                </ul>
+                
+                <h6>Data Protection</h6>
+                <ul>
+                    <li>Birth dates are encrypted and stored securely</li>
+                    <li>Never shared with third parties</li>
+                    <li>Used only for the purposes stated above</li>
+                    <li>Retained only as long as your account is active</li>
+                </ul>
+                
+                <h6>Parental Rights</h6>
+                <p>Parents of users under 18 have the right to:</p>
+                <ul>
+                    <li>Review their child's account information</li>
+                    <li>Request deletion of their child's account</li>
+                    <li>Manage subscription consent for paid features</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('age-verification-form');
+    const birthDateInput = document.getElementById('birth_date');
+    
+    // Set max date to 10 years ago (minimum age consideration)
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() - 10);
+    birthDateInput.setAttribute('max', maxDate.toISOString().split('T')[0]);
+    
+    // Set min date to 120 years ago
+    const minDate = new Date();
+    minDate.setFullYear(minDate.getFullYear() - 120);
+    birthDateInput.setAttribute('min', minDate.toISOString().split('T')[0]);
+    
+    // Calculate and display age when date is selected
+    birthDateInput.addEventListener('change', function() {
+        const birthDate = new Date(this.value);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        // Show age preview
+        let ageMessage = '';
+        let ageClass = '';
+        
+        if (age < 13) {
+            ageMessage = `Age ${age}: Unfortunately, Cinematch is not available for users under 13.`;
+            ageClass = 'alert-danger';
+        } else if (age < 18) {
+            ageMessage = `Age ${age}: You'll have access to age-appropriate content and the free tier. Paid subscriptions require parental consent.`;
+            ageClass = 'alert-info';
+        } else {
+            ageMessage = `Age ${age}: You'll have full access to all Cinematch features and subscription tiers.`;
+            ageClass = 'alert-success';
+        }
+        
+        // Remove existing age preview
+        const existingPreview = document.getElementById('age-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        
+        // Add age preview
+        const agePreview = document.createElement('div');
+        agePreview.id = 'age-preview';
+        agePreview.className = `alert ${ageClass} mt-3`;
+        agePreview.innerHTML = `<i class="fas fa-info-circle"></i> ${ageMessage}`;
+        
+        this.parentNode.appendChild(agePreview);
+    });
+    
+    // Form submission
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const birthDate = new Date(birthDateInput.value);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            // Confirm age before submitting
+            if (age < 13) {
+                alert('Users under 13 are not permitted to use Cinematch. We apologize for any inconvenience.');
+                return;
+            }
+            
+            // Submit the form
+            this.submit();
+        });
+    }
+});
+</script>
+{% endblock %}

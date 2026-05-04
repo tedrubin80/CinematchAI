@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Cancelled - Cinematch</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #6c757d; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+        .info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .button { background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Subscription Cancelled</h1>
+    </div>
+    <div class="content">
+        <h2>Hi {{ user_name }},</h2>
+        <p>We're sad to see you go! Your Cinematch {{ tier_name }} subscription has been cancelled.</p>
+        
+        <div class="info">
+            <p><strong>Your access will continue until:</strong> {{ end_date }}</p>
+            <p>After that, you'll be moved to our free tier with basic features.</p>
+        </div>
+        
+        <p>We'd love to have you back anytime! Feel free to resubscribe whenever you're ready.</p>
+        
+        <a href="https://cinematch.online/subscription/" class="button">Resubscribe</a>
+        
+        <p>Thanks for being part of the Cinematch community!</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 Cinematch. All rights reserved.</p>
+    </div>
+</body>
+</html>

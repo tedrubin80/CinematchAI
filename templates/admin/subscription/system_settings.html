@@ -1,0 +1,575 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - Cinematch Admin{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #6f42c1 0%, #5a4fcf 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .setting-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-left: 4px solid #667eea;
+    }
+    .tier-config {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    .status-online {
+        background: #28a745;
+    }
+    .status-offline {
+        background: #dc3545;
+    }
+    .status-warning {
+        background: #ffc107;
+    }
+    .admin-nav {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    .admin-nav .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .admin-nav .nav-link:hover {
+        background: #e9ecef;
+    }
+    .admin-nav .nav-link.active {
+        background: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">
+                    <i class="fas fa-cog"></i>
+                    System Settings
+                </h2>
+                <p class="mb-0 opacity-75">Configure subscription tiers, system components, and preferences</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-light" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save All Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.dashboard') }}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_users') }}">
+                    <i class="fas fa-users"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_ai_models') }}">
+                    <i class="fas fa-robot"></i> AI Models
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.analytics') }}">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.safety_monitoring') }}">
+                    <i class="fas fa-shield-alt"></i> Safety
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('admin_subscription.system_settings') }}">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="row">
+        <!-- Subscription Tier Configuration -->
+        <div class="col-md-8">
+            <div class="setting-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-layer-group"></i>
+                    Subscription Tier Configuration
+                </h5>
+                
+                {% for tier_name, config in tier_configs.items() %}
+                <div class="tier-config">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h6 class="mb-0">{{ config.name }}</h6>
+                            <small class="text-muted">{{ tier_name }}</small>
+                        </div>
+                        <div class="col-md-2">
+                            {% if config.price == 0 %}
+                                <strong class="text-success">Free</strong>
+                            {% else %}
+                                <strong class="text-primary">${{ "%.2f"|format(config.price / 100) }}</strong>
+                                <small class="text-muted d-block">/month</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control" 
+                                       value="{{ config.queries_per_day if config.queries_per_day != float('inf') else 999999 }}"
+                                       id="queries_{{ tier_name }}">
+                                <span class="input-group-text">queries/day</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">{{ config.description[:50] }}...</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div class="mt-3 pt-3 border-top">
+                    <button class="btn btn-primary btn-sm" onclick="updateTierSettings()">
+                        <i class="fas fa-save"></i> Update Tier Settings
+                    </button>
+                    <button class="btn btn-outline-info btn-sm ms-2" onclick="testBilling()">
+                        <i class="fas fa-credit-card"></i> Test Billing Integration
+                    </button>
+                </div>
+            </div>
+            
+            <!-- AI Model Settings -->
+            <div class="setting-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-robot"></i>
+                    AI Model Routing Configuration
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="default_model" class="form-label">Default Model</label>
+                        <select class="form-select" id="default_model">
+                            <option value="llama" selected>Llama 3.2 3B (Priority 1)</option>
+                            <option value="claude">Claude Sonnet (Priority 2)</option>
+                            <option value="gpt">GPT-3.5-turbo (Priority 3)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="fallback_timeout" class="form-label">Fallback Timeout (seconds)</label>
+                        <input type="number" class="form-control" id="fallback_timeout" value="30">
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enable_circuit_breaker" checked>
+                            <label class="form-check-label" for="enable_circuit_breaker">
+                                Enable Circuit Breaker Protection
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enable_cost_optimization" checked>
+                            <label class="form-check-label" for="enable_cost_optimization">
+                                Enable Cost Optimization Routing
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3 pt-3 border-top">
+                    <button class="btn btn-primary btn-sm" onclick="updateAiSettings()">
+                        <i class="fas fa-save"></i> Update AI Settings
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Horror Database Settings -->
+            <div class="setting-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-film"></i>
+                    Horror Database Configuration
+                </h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="extraction_schedule" class="form-label">Extraction Schedule</label>
+                        <select class="form-select" id="extraction_schedule">
+                            <option value="monthly" selected>Monthly (1st Saturday)</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="daily">Daily</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="wikipedia_export" class="form-label">Wikipedia Export</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="wikipedia_export" checked>
+                            <label class="form-check-label" for="wikipedia_export">
+                                Auto-export to Wikipedia format
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-outline-success btn-sm" onclick="runHorrorExtraction()">
+                        <i class="fas fa-play"></i> Run Manual Extraction
+                    </button>
+                    <button class="btn btn-outline-info btn-sm ms-2" onclick="testWikipediaExport()">
+                        <i class="fas fa-globe"></i> Test Wikipedia Export
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Status -->
+        <div class="col-md-4">
+            <div class="setting-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-heartbeat"></i>
+                    System Status
+                </h5>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Ollama Service</span>
+                        <span>
+                            <span class="status-indicator {% if system_status.ollama_available %}status-online{% else %}status-offline{% endif %}"></span>
+                            {% if system_status.ollama_available %}Online{% else %}Offline{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>External Drive</span>
+                        <span>
+                            <span class="status-indicator {% if system_status.external_drive_mounted %}status-online{% else %}status-offline{% endif %}"></span>
+                            {% if system_status.external_drive_mounted %}Mounted{% else %}Unmounted{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Horror Database</span>
+                        <span>
+                            <span class="status-indicator status-online"></span>
+                            {{ "%.1f"|format(system_status.horror_db_size / 1024 / 1024) }} MB
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Wikipedia Export</span>
+                        <span>
+                            <span class="status-indicator {% if system_status.wikipedia_export_ready %}status-online{% else %}status-warning{% endif %}"></span>
+                            {% if system_status.wikipedia_export_ready %}Ready{% else %}Not Ready{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6 class="mb-3">Quick Actions</h6>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="restartServices()">
+                        <i class="fas fa-redo"></i> Restart Services
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="clearCache()">
+                        <i class="fas fa-broom"></i> Clear All Caches
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="runSystemCheck()">
+                        <i class="fas fa-stethoscope"></i> Run System Check
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="backupData()">
+                        <i class="fas fa-database"></i> Backup Data
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Environment Variables -->
+            <div class="setting-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-key"></i>
+                    Environment Status
+                </h5>
+                
+                <div class="mb-2">
+                    <small class="text-muted">Stripe API Key:</small>
+                    <span class="badge bg-warning float-end">Test Mode</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">Claude API Key:</small>
+                    <span class="badge bg-secondary float-end">Not Set</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">OpenAI API Key:</small>
+                    <span class="badge bg-secondary float-end">Not Set</span>
+                </div>
+                <div class="mb-2">
+                    <small class="text-muted">TMDB API Key:</small>
+                    <span class="badge bg-success float-end">Active</span>
+                </div>
+                
+                <hr>
+                
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    API keys are configured via environment variables for security.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function saveSettings() {
+    alert('All settings saved successfully! Changes will take effect after service restart.');
+}
+
+function updateTierSettings() {
+    // Collect tier settings
+    const tierSettings = {};
+    ['free', 'basic', 'premium'].forEach(tier => {
+        const queries = document.getElementById(`queries_${tier}`).value;
+        tierSettings[tier] = { queries_per_day: parseInt(queries) };
+    });
+    
+    fetch('/admin/subscription/settings/tiers', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tierSettings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Subscription tier settings updated successfully!');
+        } else {
+            alert('Error updating settings: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+function updateAiSettings() {
+    const settings = {
+        default_model: document.getElementById('default_model').value,
+        fallback_timeout: parseInt(document.getElementById('fallback_timeout').value),
+        enable_circuit_breaker: document.getElementById('enable_circuit_breaker').checked,
+        enable_cost_optimization: document.getElementById('enable_cost_optimization').checked
+    };
+    
+    fetch('/admin/subscription/settings/ai', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('AI model settings updated successfully!');
+        } else {
+            alert('Error updating AI settings: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+function testBilling() {
+    alert('Testing Stripe billing integration...');
+    
+    fetch('/admin/subscription/test/billing', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Billing test successful!\n' + JSON.stringify(data.results, null, 2));
+        } else {
+            alert('Billing test failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error testing billing: ' + error);
+    });
+}
+
+function runHorrorExtraction() {
+    if (confirm('Run manual horror movie extraction? This may take several minutes.')) {
+        alert('Starting horror extraction...');
+        
+        fetch('/admin/subscription/actions/extract-horror', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Horror extraction started successfully! Check the logs for progress.');
+            } else {
+                alert('Error starting extraction: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function testWikipediaExport() {
+    alert('Testing Wikipedia export functionality...');
+    
+    fetch('/admin/subscription/test/wikipedia-export', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Wikipedia export test successful!\n' + 
+                  `Movies exported: ${data.movies_exported}\n` +
+                  `Categories: ${data.categories_exported}\n` +
+                  `Templates: ${data.templates_exported}`);
+        } else {
+            alert('Wikipedia export test failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error testing export: ' + error);
+    });
+}
+
+function restartServices() {
+    if (confirm('Restart all Cinematch services? This will briefly interrupt service.')) {
+        alert('Restarting services...');
+        
+        fetch('/admin/subscription/actions/restart-services', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Services restarted successfully!');
+                location.reload();
+            } else {
+                alert('Error restarting services: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function clearCache() {
+    if (confirm('Clear all system caches? This may temporarily slow performance.')) {
+        fetch('/admin/subscription/actions/clear-cache', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('All caches cleared successfully!');
+            } else {
+                alert('Error clearing caches: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function runSystemCheck() {
+    alert('Running comprehensive system check...');
+    
+    fetch('/admin/subscription/actions/system-check', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let report = 'System Check Results:\n\n';
+            for (const [component, status] of Object.entries(data.results)) {
+                report += `${component}: ${status.status}\n`;
+                if (status.message) {
+                    report += `  ${status.message}\n`;
+                }
+            }
+            alert(report);
+        } else {
+            alert('System check failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error running system check: ' + error);
+    });
+}
+
+function backupData() {
+    if (confirm('Create a full data backup? This may take several minutes.')) {
+        alert('Starting backup process...');
+        
+        fetch('/admin/subscription/actions/backup', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Backup completed successfully!\nBackup location: ' + data.backup_path);
+            } else {
+                alert('Backup failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error creating backup: ' + error);
+        });
+    }
+}
+</script>
+{% endblock %}

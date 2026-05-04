@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Parental Consent - Cinematch{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    .consent-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    .consent-header {
+        background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(33, 150, 243, 0.2);
+    }
+    .consent-form {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .info-card {
+        background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+        border: 1px solid #28a745;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .warning-card {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border: 1px solid #ffc107;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .btn-consent {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-consent:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+    .features-comparison {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="consent-container">
+        <!-- Header -->
+        <div class="consent-header">
+            <i class="fas fa-users fa-3x mb-3"></i>
+            <h2 class="mb-3">Parental Consent Required</h2>
+            <p class="mb-0">As a user under 18, you need parental consent to access paid subscription features.</p>
+        </div>
+
+        <!-- Information Card -->
+        <div class="info-card">
+            <h5 class="text-success mb-3">
+                <i class="fas fa-info-circle"></i>
+                Why Parental Consent?
+            </h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="mb-0">
+                        <li>Required by law for users under 18</li>
+                        <li>Ensures responsible digital spending</li>
+                        <li>Protects minors from unauthorized charges</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="mb-0">
+                        <li>Gives parents oversight of subscriptions</li>
+                        <li>Maintains COPPA compliance</li>
+                        <li>Promotes family digital safety</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Access vs With Consent -->
+        <div class="features-comparison">
+            <h6 class="mb-3">Current Access vs. With Parental Consent</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-success">✓ Current Access (Free Tier)</h6>
+                    <ul>
+                        <li>10 movie recommendations per day</li>
+                        <li>Age-appropriate content filtering</li>
+                        <li>Basic movie search and discovery</li>
+                        <li>Standard AI recommendations</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-primary">🔒 With Parental Consent</h6>
+                    <ul>
+                        <li><strong>Basic Plan:</strong> 100 queries/day, enhanced AI</li>
+                        <li><strong>Premium Plan:</strong> Unlimited queries, exclusive horror database</li>
+                        <li>Advanced recommendation algorithms</li>
+                        <li>Export capabilities and priority support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if current_user.parental_consent %}
+        <!-- Already Have Consent -->
+        <div class="consent-form text-center">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h4 class="text-success mb-3">Parental Consent Recorded</h4>
+            <p class="text-muted mb-3">Consent email: <strong>{{ current_user.parental_email }}</strong></p>
+            <p class="text-muted mb-4">You can now access paid subscription plans with parental oversight.</p>
+            <a href="{{ url_for('subscription.index') }}" class="btn btn-consent">
+                <i class="fas fa-arrow-right"></i> View Subscription Plans
+            </a>
+        </div>
+        {% else %}
+        <!-- Consent Form -->
+        <div class="consent-form">
+            <h5 class="mb-4">
+                <i class="fas fa-clipboard-check text-primary"></i>
+                Parental Consent Form
+            </h5>
+
+            <div class="warning-card">
+                <h6 class="text-warning mb-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Important for Parents/Guardians
+                </h6>
+                <p class="mb-2">By providing consent, you are:</p>
+                <ul class="mb-0">
+                    <li>Authorizing your child to subscribe to paid movie recommendation services</li>
+                    <li>Taking responsibility for any subscription charges</li>
+                    <li>Confirming you understand the subscription terms and pricing</li>
+                    <li>Agreeing to receive billing notifications at the email provided</li>
+                </ul>
+            </div>
+
+            <form method="POST" id="parental-consent-form">
+                <div class="mb-4">
+                    <label for="parental_email" class="form-label">
+                        <i class="fas fa-envelope"></i>
+                        Parent/Guardian Email Address <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" 
+                           class="form-control form-control-lg" 
+                           id="parental_email" 
+                           name="parental_email" 
+                           required
+                           placeholder="parent@example.com">
+                    <div class="form-text">
+                        This email will receive billing notifications and subscription updates
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="billing_consent" required>
+                        <label class="form-check-label" for="billing_consent">
+                            <strong>Billing Consent:</strong> I understand that paid subscriptions will be charged to the payment method I provide, and I am responsible for all charges.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="supervision_consent" required>
+                        <label class="form-check-label" for="supervision_consent">
+                            <strong>Supervision Acknowledgment:</strong> I understand that my child will have access to age-appropriate movie recommendations and I can review their account activity.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="terms_consent" required>
+                        <label class="form-check-label" for="terms_consent">
+                            <strong>Terms Agreement:</strong> I have read and agree to Cinematch's Terms of Service and Privacy Policy on behalf of my child.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="consent_confirmed" name="consent_confirmed" required>
+                        <label class="form-check-label" for="consent_confirmed">
+                            <strong>Final Consent:</strong> I am the parent or legal guardian of <strong>{{ current_user.username }}</strong> (age {{ current_user.age }}), and I provide consent for them to subscribe to paid Cinematch services.
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-consent btn-lg">
+                        <i class="fas fa-check-circle"></i>
+                        Provide Parental Consent
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="consent-form">
+            <h6 class="mb-3">
+                <i class="fas fa-shield-alt text-primary"></i>
+                Safety & Privacy
+            </h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-success">Content Protection</h6>
+                    <ul>
+                        <li>Age-appropriate content filtering maintained</li>
+                        <li>No access to adult or mature content</li>
+                        <li>Movie ratings respected (G, PG, PG-13 only)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-success">Parental Controls</h6>
+                    <ul>
+                        <li>View subscription status anytime</li>
+                        <li>Cancel subscriptions immediately</li>
+                        <li>Receive all billing notifications</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Contact Information -->
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                Questions about parental consent? 
+                <a href="mailto:support@cinematch.online" class="text-decoration-none">Contact our support team</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('parental-consent-form');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Confirm before submitting
+            const userAge = {{ current_user.age }};
+            const parentalEmail = document.getElementById('parental_email').value;
+            
+            if (confirm(`Are you the parent/guardian of {{ current_user.username }} (age ${userAge})? By clicking OK, you provide consent for them to access paid Cinematch subscriptions. Billing notifications will be sent to ${parentalEmail}.`)) {
+                this.submit();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

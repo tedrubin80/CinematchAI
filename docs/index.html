@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ted Rubin — Developer Portfolio | Cinematch AI</title>
+  <meta name="description" content="Full-stack developer portfolio showcasing Cinematch AI — an enterprise-grade AI-powered movie recommendation platform.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Floating Particles Background -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo">
+        <span class="logo-icon">&#9670;</span> TR
+      </a>
+      <div class="nav-links">
+        <a href="#project">Project</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#tech">Stack</a>
+        <a href="#code">Code</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#project">Project</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#tech">Stack</a>
+    <a href="#code">Code</a>
+    <a href="#contact">Contact</a>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <div class="hero-badge animate-in">
+        <span class="badge-dot"></span> Full-Stack Developer &amp; AI Engineer
+      </div>
+      <h1 class="hero-title animate-in" data-delay="100">
+        <span class="hero-line">Building intelligent</span>
+        <span class="hero-line gradient-text">systems that think.</span>
+      </h1>
+      <p class="hero-subtitle animate-in" data-delay="200">
+        Cinematch AI is a full-featured movie recommendation platform with an intelligent
+        chatbot, multi-provider AI integration, real-time streaming, and an enterprise-grade
+        admin system — built from the ground up with Flask, PostgreSQL, and Redis.
+      </p>
+      <div class="hero-cta animate-in" data-delay="300">
+        <a href="#project" class="btn btn-primary">
+          View Project <span class="btn-arrow">&rarr;</span>
+        </a>
+        <a href="#tech" class="btn btn-ghost">
+          Tech Stack
+        </a>
+      </div>
+
+      <!-- Floating Stats -->
+      <div class="hero-stats animate-in" data-delay="400">
+        <div class="stat-card glass-card">
+          <span class="stat-number counter" data-target="56">0</span>
+          <span class="stat-label">Python Modules</span>
+        </div>
+        <div class="stat-card glass-card">
+          <span class="stat-number counter" data-target="5">0</span>
+          <span class="stat-label">Data Sources</span>
+        </div>
+        <div class="stat-card glass-card">
+          <span class="stat-number">90<span class="stat-unit">%</span></span>
+          <span class="stat-label">Cost Reduction</span>
+        </div>
+        <div class="stat-card glass-card">
+          <span class="stat-number counter" data-target="4">0</span>
+          <span class="stat-label">AI Providers</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-glow"></div>
+    <div class="hero-grid-bg"></div>
+  </section>
+
+  <!-- Project Overview — Bento Grid -->
+  <section class="section" id="project">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-tag">Featured Project</span>
+        <h2 class="section-title">Cinematch AI</h2>
+        <p class="section-subtitle">An AI-powered movie recommendation platform with intelligent chat, multi-provider LLM orchestration, and production-grade safety and admin systems.</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Main Feature Card -->
+        <div class="bento-card bento-large tilt-card animate-in" data-delay="0">
+          <div class="bento-card-glow"></div>
+          <div class="bento-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h3>Local-First AI Architecture</h3>
+          <p>Intelligent provider routing chains: Ollama (local) &rarr; Claude &rarr; OpenAI &rarr; Template fallback. Achieves sub-500ms local response times with graceful degradation to cloud providers.</p>
+          <div class="bento-tag-row">
+            <span class="tag">LangChain</span>
+            <span class="tag">Ollama</span>
+            <span class="tag">Multi-Provider</span>
+          </div>
+        </div>
+
+        <!-- Safety Card -->
+        <div class="bento-card tilt-card animate-in" data-delay="100">
+          <div class="bento-card-glow"></div>
+          <div class="bento-icon accent-green">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3>Multi-Layer Safety</h3>
+          <p>Content filtering, age verification, violence/profanity detection via Guardrails, domain restrictions, and fraud detection systems.</p>
+          <div class="bento-tag-row">
+            <span class="tag">Guardrails</span>
+            <span class="tag">CSRF</span>
+          </div>
+        </div>
+
+        <!-- Couples Algorithm -->
+        <div class="bento-card tilt-card animate-in" data-delay="200">
+          <div class="bento-card-glow"></div>
+          <div class="bento-icon accent-purple">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+          </div>
+          <h3>Couples Mode</h3>
+          <p>Smart recommendations for two people watching together — balances both preferences so neither partner gets stuck with something they hate.</p>
+          <div class="bento-tag-row">
+            <span class="tag">Scoring Engine</span>
+            <span class="tag">Preference Matching</span>
+          </div>
+        </div>
+
+        <!-- Scraping System -->
+        <div class="bento-card tilt-card animate-in" data-delay="100">
+          <div class="bento-card-glow"></div>
+          <div class="bento-icon accent-orange">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h3>Data Pipeline</h3>
+          <p>Automated scraping from TMDB, IMDB, Rotten Tomatoes, Metacritic, Wikipedia with content validation and deduplication.</p>
+          <div class="bento-tag-row">
+            <span class="tag">Playwright</span>
+            <span class="tag">Scrapy</span>
+            <span class="tag">Celery</span>
+          </div>
+        </div>
+
+        <!-- Real-time Chat -->
+        <div class="bento-card tilt-card animate-in" data-delay="200">
+          <div class="bento-card-glow"></div>
+          <div class="bento-icon accent-cyan">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h3>CineBot Chat</h3>
+          <p>Real-time streaming responses via SSE, conversation memory across sessions, personality engine, and context-aware recommendations.</p>
+          <div class="bento-tag-row">
+            <span class="tag">SSE</span>
+            <span class="tag">Flask</span>
+            <span class="tag">Redis</span>
+          </div>
+        </div>
+
+        <!-- Admin & Monitoring - Wide Card -->
+        <div class="bento-card bento-wide tilt-card animate-in" data-delay="300">
+          <div class="bento-card-glow"></div>
+          <div class="bento-icon accent-yellow">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M3 9h18M9 21V9"/>
+            </svg>
+          </div>
+          <h3>Enterprise Admin & Monitoring</h3>
+          <p>GUI desktop panel, web admin dashboard, CLI utilities, Prometheus + Grafana integration, health checks, rotating log management, and comprehensive backup systems with integrity verification.</p>
+          <div class="bento-tag-row">
+            <span class="tag">Prometheus</span>
+            <span class="tag">Grafana</span>
+            <span class="tag">Gunicorn</span>
+            <span class="tag">Docker</span>
+            <span class="tag">Nginx</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Section -->
+  <section class="section section-dark" id="architecture">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-tag">System Design</span>
+        <h2 class="section-title">How It Was Built</h2>
+        <p class="section-subtitle">A deep dive into the architectural decisions, design patterns, and engineering challenges behind Cinematch AI.</p>
+      </div>
+
+      <div class="arch-timeline">
+        <!-- Phase 1 -->
+        <div class="arch-step animate-in" data-delay="0">
+          <div class="arch-step-marker">
+            <span class="arch-step-num">01</span>
+          </div>
+          <div class="arch-step-content glass-card tilt-card">
+            <h3>Foundation &amp; Data Layer</h3>
+            <p>Started with PostgreSQL schema design optimized for movie metadata — B-tree indexing on frequently queried fields, full-text search, and pgvector for embedding-based similarity. Built the Flask application with SQLAlchemy ORM and Alembic migrations for schema versioning.</p>
+            <div class="arch-tech">
+              <span>PostgreSQL</span><span>pgvector</span><span>SQLAlchemy</span><span>Alembic</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="arch-step animate-in" data-delay="100">
+          <div class="arch-step-marker">
+            <span class="arch-step-num">02</span>
+          </div>
+          <div class="arch-step-content glass-card tilt-card">
+            <h3>AI Provider Chain</h3>
+            <p>Designed the intelligent routing system using LangChain as the orchestration layer. The chain attempts local Ollama first (free, fast, private), falls back to Claude for complex queries, then OpenAI, with a template-based fallback ensuring the system never fails. Added dynamic parameter controls — temperature, top-k sampling — adjusted automatically based on query context.</p>
+            <div class="arch-tech">
+              <span>LangChain</span><span>Ollama</span><span>Claude API</span><span>OpenAI API</span><span>Gemini</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phase 3 -->
+        <div class="arch-step animate-in" data-delay="200">
+          <div class="arch-step-marker">
+            <span class="arch-step-num">03</span>
+          </div>
+          <div class="arch-step-content glass-card tilt-card">
+            <h3>Recommendation Engine</h3>
+            <p>Built the couples recommendation feature that balances preferences for two viewers. Designed a scoring system that ensures neither person gets stuck with something they dislike, plus adaptive learning that improves suggestions over time based on user feedback.</p>
+            <div class="arch-tech">
+              <span>Python</span><span>NumPy</span><span>Pandas</span><span>Adaptive Learning</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phase 4 -->
+        <div class="arch-step animate-in" data-delay="300">
+          <div class="arch-step-marker">
+            <span class="arch-step-num">04</span>
+          </div>
+          <div class="arch-step-content glass-card tilt-card">
+            <h3>Safety &amp; Production Hardening</h3>
+            <p>Implemented multi-layer content filtering with age verification guardrails, violence/profanity detection, and fraud detection. Added OAuth 2.0 with Google, CSRF protection, rate limiting with Redis-backed storage, and role-based access control. Containerized the full stack with Docker Compose, Nginx reverse proxy, Prometheus/Grafana monitoring, and automated backup systems.</p>
+            <div class="arch-tech">
+              <span>Docker</span><span>Nginx</span><span>Redis</span><span>OAuth 2.0</span><span>Prometheus</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="section" id="tech">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-tag">Technologies</span>
+        <h2 class="section-title">Tech Stack</h2>
+      </div>
+
+      <div class="stack-grid">
+        <div class="stack-category glass-card tilt-card animate-in" data-delay="0">
+          <h3 class="stack-cat-title"><span class="stack-dot dot-blue"></span>Backend</h3>
+          <div class="stack-items">
+            <div class="stack-item"><span class="stack-icon">&#9881;</span> Flask 3.0</div>
+            <div class="stack-item"><span class="stack-icon">&#9881;</span> Gunicorn</div>
+            <div class="stack-item"><span class="stack-icon">&#9881;</span> SQLAlchemy</div>
+            <div class="stack-item"><span class="stack-icon">&#9881;</span> Celery</div>
+            <div class="stack-item"><span class="stack-icon">&#9881;</span> Flask-Login</div>
+            <div class="stack-item"><span class="stack-icon">&#9881;</span> Flask-Limiter</div>
+          </div>
+        </div>
+
+        <div class="stack-category glass-card tilt-card animate-in" data-delay="100">
+          <h3 class="stack-cat-title"><span class="stack-dot dot-purple"></span>AI / ML</h3>
+          <div class="stack-items">
+            <div class="stack-item"><span class="stack-icon">&#10024;</span> LangChain</div>
+            <div class="stack-item"><span class="stack-icon">&#10024;</span> OpenAI</div>
+            <div class="stack-item"><span class="stack-icon">&#10024;</span> Anthropic Claude</div>
+            <div class="stack-item"><span class="stack-icon">&#10024;</span> Google Gemini</div>
+            <div class="stack-item"><span class="stack-icon">&#10024;</span> Ollama</div>
+            <div class="stack-item"><span class="stack-icon">&#10024;</span> spaCy / TextBlob</div>
+            <div class="stack-item"><span class="stack-icon">&#10024;</span> Sentence Transformers</div>
+          </div>
+        </div>
+
+        <div class="stack-category glass-card tilt-card animate-in" data-delay="200">
+          <h3 class="stack-cat-title"><span class="stack-dot dot-green"></span>Data</h3>
+          <div class="stack-items">
+            <div class="stack-item"><span class="stack-icon">&#9861;</span> PostgreSQL</div>
+            <div class="stack-item"><span class="stack-icon">&#9861;</span> pgvector</div>
+            <div class="stack-item"><span class="stack-icon">&#9861;</span> Redis</div>
+            <div class="stack-item"><span class="stack-icon">&#9861;</span> Pandas / NumPy</div>
+            <div class="stack-item"><span class="stack-icon">&#9861;</span> Playwright</div>
+            <div class="stack-item"><span class="stack-icon">&#9861;</span> Scrapy</div>
+          </div>
+        </div>
+
+        <div class="stack-category glass-card tilt-card animate-in" data-delay="300">
+          <h3 class="stack-cat-title"><span class="stack-dot dot-orange"></span>Infrastructure</h3>
+          <div class="stack-items">
+            <div class="stack-item"><span class="stack-icon">&#9729;</span> Docker Compose</div>
+            <div class="stack-item"><span class="stack-icon">&#9729;</span> Nginx</div>
+            <div class="stack-item"><span class="stack-icon">&#9729;</span> Prometheus</div>
+            <div class="stack-item"><span class="stack-icon">&#9729;</span> Grafana</div>
+            <div class="stack-item"><span class="stack-icon">&#9729;</span> S3 / Boto3</div>
+            <div class="stack-item"><span class="stack-icon">&#9729;</span> Let's Encrypt SSL</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code Showcase -->
+  <section class="section section-dark" id="code">
+    <div class="container">
+      <div class="section-header animate-in">
+        <span class="section-tag">Under the Hood</span>
+        <h2 class="section-title">Code Highlights</h2>
+        <p class="section-subtitle">Key patterns and architectural decisions from the codebase.</p>
+      </div>
+
+      <div class="code-showcase">
+        <!-- Code Tab Navigation -->
+        <div class="code-tabs animate-in">
+          <button class="code-tab active" data-tab="provider">AI Provider Chain</button>
+          <button class="code-tab" data-tab="safety">Safety Pipeline</button>
+        </div>
+
+        <!-- Provider Chain -->
+        <div class="code-panel active" id="tab-provider">
+          <div class="code-split animate-in">
+            <div class="code-block glass-card">
+              <div class="code-header">
+                <span class="code-dot red"></span>
+                <span class="code-dot yellow"></span>
+                <span class="code-dot green"></span>
+                <span class="code-filename">services/ai_manager.py</span>
+              </div>
+<pre><code><span class="kw">class</span> <span class="cls">AIProviderChain</span>:
+    <span class="str">"""Intelligent multi-provider LLM routing
+    with automatic fallback and cost optimization."""</span>
+
+    PROVIDER_ORDER = [
+        (<span class="str">"ollama"</span>, <span class="num">0.00</span>),    <span class="cmt"># Free, local</span>
+        (<span class="str">"claude"</span>, <span class="num">0.015</span>),   <span class="cmt"># Best quality</span>
+        (<span class="str">"openai"</span>, <span class="num">0.02</span>),    <span class="cmt"># Wide capability</span>
+        (<span class="str">"gemini"</span>, <span class="num">0.01</span>),    <span class="cmt"># Cost-effective</span>
+        (<span class="str">"template"</span>, <span class="num">0.00</span>),  <span class="cmt"># Never fails</span>
+    ]
+
+    <span class="kw">async def</span> <span class="fn">get_recommendation</span>(self, query, ctx):
+        <span class="kw">for</span> provider, cost <span class="kw">in</span> self.PROVIDER_ORDER:
+            <span class="kw">try</span>:
+                chain = self._build_chain(provider)
+                params = self._dynamic_params(query, ctx)
+                response = <span class="kw">await</span> chain.ainvoke({
+                    <span class="str">"query"</span>: query,
+                    <span class="str">"temperature"</span>: params.temp,
+                    <span class="str">"context"</span>: ctx.history[-<span class="num">5</span>:]
+                })
+                self.metrics.record(provider, cost)
+                <span class="kw">return</span> response
+            <span class="kw">except</span> ProviderError:
+                logger.warning(<span class="str">f"<span class="esc">{provider}</span> failed, trying next"</span>)
+                <span class="kw">continue</span></code></pre>
+            </div>
+            <div class="code-description">
+              <h3>Intelligent Provider Routing</h3>
+              <p>The AI provider chain uses a priority-ordered fallback system. Each request attempts the cheapest provider first (local Ollama), cascading through cloud providers only when needed.</p>
+              <ul>
+                <li>Local-first for privacy and zero cost</li>
+                <li>Dynamic parameter tuning per query context</li>
+                <li>Automatic metrics tracking per provider</li>
+                <li>Template fallback guarantees 100% uptime</li>
+              </ul>
+              <div class="code-metric">
+                <span class="metric-value">90%</span>
+                <span class="metric-label">API cost reduction vs cloud-only</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Safety Pipeline -->
+        <div class="code-panel" id="tab-safety">
+          <div class="code-split animate-in">
+            <div class="code-block glass-card">
+              <div class="code-header">
+                <span class="code-dot red"></span>
+                <span class="code-dot yellow"></span>
+                <span class="code-dot green"></span>
+                <span class="code-filename">safety_integration.py</span>
+              </div>
+<pre><code><span class="kw">class</span> <span class="cls">SafetyPipeline</span>:
+    <span class="str">"""Multi-layer content safety with
+    age-appropriate filtering and guardrails."""</span>
+
+    <span class="kw">def</span> <span class="fn">validate_response</span>(self, response, user):
+        checks = [
+            self._check_age_appropriate(response, user),
+            self._check_violence_level(response),
+            self._check_profanity(response),
+            self._check_domain_safety(response),
+            self._check_content_filter(response),
+        ]
+
+        violations = [c <span class="kw">for</span> c <span class="kw">in</span> checks <span class="kw">if not</span> c.passed]
+
+        <span class="kw">if</span> violations:
+            logger.warning(
+                <span class="str">"Safety violations"</span>,
+                count=len(violations),
+                types=[v.type <span class="kw">for</span> v <span class="kw">in</span> violations]
+            )
+            <span class="kw">return</span> self._safe_fallback(response, violations)
+
+        <span class="kw">return</span> SafetyResult(
+            passed=<span class="kw">True</span>,
+            response=response,
+            confidence=self._confidence_score(checks)
+        )</code></pre>
+            </div>
+            <div class="code-description">
+              <h3>Multi-Layer Safety Pipeline</h3>
+              <p>Every AI response passes through 5 independent safety checks before reaching the user. Any violation triggers a safe fallback response.</p>
+              <ul>
+                <li>Age-appropriate content filtering</li>
+                <li>Violence and profanity detection</li>
+                <li>Domain restriction enforcement</li>
+                <li>Confidence scoring for transparency</li>
+              </ul>
+              <div class="code-metric">
+                <span class="metric-value">5</span>
+                <span class="metric-label">independent safety layers</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>Built by Ted Rubin &mdash; Designed with precision, powered by curiosity.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}AI Models Management - Cinematch Admin{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .model-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-left: 4px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    .model-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    .model-card.available {
+        border-left-color: #28a745;
+    }
+    .model-card.unavailable {
+        border-left-color: #dc3545;
+    }
+    .model-card.priority-1 {
+        background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+    }
+    .model-card.priority-2 {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+    .model-card.priority-3 {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    }
+    .circuit-breaker {
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 0.5rem 0;
+    }
+    .circuit-breaker.open {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+    }
+    .circuit-breaker.closed {
+        background: #d1e7dd;
+        border: 1px solid #badbcc;
+    }
+    .admin-nav {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 2rem;
+    }
+    .admin-nav .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .admin-nav .nav-link:hover {
+        background: #e9ecef;
+    }
+    .admin-nav .nav-link.active {
+        background: #667eea;
+        color: white;
+    }
+    .cost-display {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">
+                    <i class="fas fa-robot"></i>
+                    AI Models Management
+                </h2>
+                <p class="mb-0 opacity-75">Monitor and control AI model routing, costs, and availability</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-light" onclick="testAllModels()">
+                    <i class="fas fa-flask"></i> Test All Models
+                </button>
+                <button class="btn btn-light ms-2" onclick="refreshStatus()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.dashboard') }}">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.manage_users') }}">
+                    <i class="fas fa-users"></i> Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('admin_subscription.manage_ai_models') }}">
+                    <i class="fas fa-robot"></i> AI Models
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.analytics') }}">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.safety_monitoring') }}">
+                    <i class="fas fa-shield-alt"></i> Safety
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_subscription.system_settings') }}">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="row">
+        <!-- AI Models Status -->
+        <div class="col-md-8">
+            <h4 class="mb-3">
+                <i class="fas fa-server"></i>
+                Available AI Models
+            </h4>
+            
+            {% if model_status %}
+                {% for model_name, config in model_status.items() %}
+                <div class="model-card {% if config.available %}available priority-{{ config.priority }}{% else %}unavailable{% endif %}">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <h5 class="mb-1">
+                                {% if model_name == 'llama' %}
+                                    <i class="fas fa-llama text-success"></i>
+                                {% elif model_name == 'claude' %}
+                                    <i class="fas fa-brain text-primary"></i>
+                                {% elif model_name == 'gpt' %}
+                                    <i class="fas fa-robot text-info"></i>
+                                {% endif %}
+                                {{ model_name.title() }}
+                            </h5>
+                            <small class="text-muted">{{ config.provider.title() }}</small>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <div class="badge bg-{% if config.priority == 1 %}success{% elif config.priority == 2 %}primary{% else %}warning{% endif %} mb-1">
+                                    Priority {{ config.priority }}
+                                </div>
+                                <br>
+                                <small class="text-muted">Routing Order</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <strong>${{ "%.4f"|format(config.cost_per_1k) }}</strong>
+                                <br>
+                                <small class="text-muted">per 1K tokens</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="text-center">
+                                <strong>{{ config.rate_limit }}</strong>
+                                <br>
+                                <small class="text-muted">req/min</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex gap-2">
+                                {% if config.available %}
+                                    <button class="btn btn-outline-warning btn-sm" onclick="toggleModel('{{ model_name }}', 'disable')">
+                                        <i class="fas fa-pause"></i> Disable
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-outline-success btn-sm" onclick="toggleModel('{{ model_name }}', 'enable')">
+                                        <i class="fas fa-play"></i> Enable
+                                    </button>
+                                {% endif %}
+                                <button class="btn btn-outline-info btn-sm" onclick="testModel('{{ model_name }}')">
+                                    <i class="fas fa-vial"></i> Test
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Circuit Breaker Status -->
+                    {% if circuit_breakers and model_name in circuit_breakers %}
+                        {% set breaker = circuit_breakers[model_name] %}
+                        <div class="circuit-breaker {% if breaker.failures >= breaker.threshold %}open{% else %}closed{% endif %} mt-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small><strong>Circuit Breaker:</strong> 
+                                        {% if breaker.failures >= breaker.threshold %}
+                                            <span class="text-danger">OPEN</span> ({{ breaker.failures }}/{{ breaker.threshold }} failures)
+                                        {% else %}
+                                            <span class="text-success">CLOSED</span> ({{ breaker.failures }}/{{ breaker.threshold }} failures)
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    {% if breaker.failures > 0 %}
+                                        <button class="btn btn-outline-secondary btn-xs" onclick="resetCircuitBreaker('{{ model_name }}')">
+                                            <i class="fas fa-redo"></i> Reset Circuit
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-robot fa-4x text-muted mb-4"></i>
+                    <h4>No AI Models Configured</h4>
+                    <p class="text-muted">Configure API keys in environment variables to enable AI models.</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Usage Statistics -->
+        <div class="col-md-4">
+            <h4 class="mb-3">
+                <i class="fas fa-chart-pie"></i>
+                Usage Statistics
+            </h4>
+            
+            <!-- Today's Usage -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="card-title">Today's Model Usage</h6>
+                    {% if model_usage %}
+                        <canvas id="usageChart" width="300" height="300"></canvas>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-chart-pie fa-2x mb-2"></i>
+                            <p>No usage data available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Cost Summary -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="card-title">Cost Analysis</h6>
+                    <div class="cost-display">
+                        {% if model_usage %}
+                            {% set total_cost = model_usage|sum(attribute='total_cost') %}
+                            <div class="text-center">
+                                <h4 class="text-success">${{ "%.4f"|format(total_cost or 0) }}</h4>
+                                <p class="text-muted mb-0">Total Cost Today</p>
+                            </div>
+                        {% else %}
+                            <div class="text-center">
+                                <h4 class="text-muted">$0.0000</h4>
+                                <p class="text-muted mb-0">No costs today</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Cost breakdown by model -->
+                    {% if model_usage %}
+                        {% for usage in model_usage %}
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <small class="text-muted">{{ usage.agents_used[0] if usage.agents_used else 'Unknown' }}</small>
+                                <small class="font-weight-bold">${{ "%.4f"|format(usage.total_cost or 0) }}</small>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Quick Actions</h6>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="optimizeRouting()">
+                            <i class="fas fa-route"></i> Optimize Routing
+                        </button>
+                        <button class="btn btn-outline-info" onclick="viewLogs()">
+                            <i class="fas fa-file-alt"></i> View Model Logs
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="clearCache()">
+                            <i class="fas fa-broom"></i> Clear Cache
+                        </button>
+                        <button class="btn btn-outline-success" onclick="exportMetrics()">
+                            <i class="fas fa-download"></i> Export Metrics
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Initialize usage chart if data exists
+document.addEventListener('DOMContentLoaded', function() {
+    {% if model_usage %}
+    const ctx = document.getElementById('usageChart').getContext('2d');
+    const usageData = {
+        {% for usage in model_usage %}
+        '{{ usage.agents_used[0] if usage.agents_used else "Unknown" }}': {{ usage.total_queries or 0 }},
+        {% endfor %}
+    };
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(usageData),
+            datasets: [{
+                data: Object.values(usageData),
+                backgroundColor: [
+                    '#28a745', // Llama - Green
+                    '#667eea', // Claude - Blue  
+                    '#ffc107', // GPT - Yellow
+                    '#dc3545'  // Other - Red
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 10,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+});
+
+function toggleModel(modelName, action) {
+    const actionText = action === 'enable' ? 'enable' : 'disable';
+    if (confirm(`Are you sure you want to ${actionText} the ${modelName} model?`)) {
+        fetch('/admin/subscription/ai-models/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `model_name=${modelName}&action=${action}`
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert(`Error ${actionText}ing model. Please try again.`);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function testModel(modelName) {
+    alert(`Testing ${modelName} model... This will send a test query to verify functionality.`);
+    
+    fetch('/admin/subscription/ai-models/test', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `model_name=${modelName}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`${modelName} test successful!\nResponse time: ${data.response_time}ms\nCost: $${data.cost}`);
+        } else {
+            alert(`${modelName} test failed: ${data.error}`);
+        }
+    })
+    .catch(error => {
+        alert('Test error: ' + error);
+    });
+}
+
+function resetCircuitBreaker(modelName) {
+    if (confirm(`Reset circuit breaker for ${modelName}? This will allow the model to be used again.`)) {
+        fetch('/admin/subscription/ai-models/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `model_name=${modelName}&action=reset_circuit`
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Error resetting circuit breaker. Please try again.');
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function testAllModels() {
+    if (confirm('Test all available AI models? This will send test queries to verify functionality.')) {
+        alert('Testing all models... This may take a moment.');
+        
+        fetch('/admin/subscription/ai-models/test-all', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            let results = 'AI Model Test Results:\n\n';
+            for (const [model, result] of Object.entries(data.results)) {
+                results += `${model}: ${result.success ? 'PASS' : 'FAIL'}\n`;
+                if (!result.success) {
+                    results += `  Error: ${result.error}\n`;
+                }
+            }
+            alert(results);
+        })
+        .catch(error => {
+            alert('Error testing models: ' + error);
+        });
+    }
+}
+
+function optimizeRouting() {
+    if (confirm('Optimize AI model routing based on current performance and costs?')) {
+        fetch('/admin/subscription/ai-models/optimize', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Routing optimization completed!\n' + data.message);
+                location.reload();
+            } else {
+                alert('Optimization failed: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function viewLogs() {
+    window.open('/admin/subscription/ai-models/logs', '_blank');
+}
+
+function clearCache() {
+    if (confirm('Clear AI model cache? This will force fresh responses from all models.')) {
+        fetch('/admin/subscription/ai-models/clear-cache', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Cache cleared successfully!');
+            } else {
+                alert('Error clearing cache: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+function exportMetrics() {
+    window.location.href = '/admin/subscription/ai-models/export-metrics';
+}
+
+function refreshStatus() {
+    location.reload();
+}
+</script>
+{% endblock %}
