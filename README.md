@@ -38,30 +38,7 @@ A live portfolio page is published from this repo at:
 └── docs/               Same portfolio, served by GitHub Pages from /docs
 ```
 
-## What's intentionally **not** in this repository
 
-The following parts of the production system are excluded — either because they are proprietary, NDA-covered, or contain credentials:
-
-- The recommendation engine, conversation-intelligence, and personality system
-- All AI-provider routing logic (Ollama → Claude → OpenAI fallback)
-- Web-scraping and data-acquisition pipelines
-- Payment processing, subscription billing, fraud detection
-- Age-verification and PCI-compliance modules
-- Admin tooling, monitoring, analytics, scraping daemons
-- All `.env` files, API keys, encryption keys, and OAuth secrets
-- Internal documentation, patent disclosures, and survey data
-- Database backups, training notebooks, and ops scripts
-
-If you are evaluating this codebase for a hiring decision and want to see additional material under NDA, contact the author.
-
-## Tech stack (visible from this excerpt)
-
-- **Backend:** Python 3.8+, Flask 3, SQLAlchemy, Flask-Login, Flask-Migrate, Flask-Limiter, Celery
-- **Database:** PostgreSQL with `pgvector` for embeddings
-- **Cache / queue:** Redis
-- **AI / ML:** LangChain (Anthropic, OpenAI, Google Generative AI), `sentence-transformers`, spaCy
-- **Front-end:** Server-rendered Jinja2 templates, Bootstrap, vanilla JS for the portfolio page
-- **Infra:** Gunicorn behind nginx, Docker-friendly, S3-compatible object storage for backups
 
 ## Running the layout demo locally
 
