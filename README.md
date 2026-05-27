@@ -2,7 +2,7 @@
 
 Public layout & architecture snapshot of **Cinematch**, an AI-powered movie recommendation web application.
 
-This repository is a curated, NDA-safe excerpt of the codebase: it shows **how the site is built** — the page layout, the Flask application skeleton, the database schema, the auth flow, and the front-end portfolio page — without exposing the proprietary recommendation engine, scraping pipeline, personality models, payment integrations, or operational secrets.
+
 
 A live portfolio page is published from this repo at:
 **https://tedrubin80.github.io/CinematchAI/**
